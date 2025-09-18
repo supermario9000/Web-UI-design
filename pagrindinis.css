@@ -1,0 +1,9 @@
+
+
+body {
+    background-color: lightblue;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    cursor: url("assets/blizge_cursor.png") 0 0, auto;
+}
