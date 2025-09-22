@@ -79,7 +79,7 @@ body {
     animation-name: lydeka_juda;
     animation-iteration-count: infinite;
     animation-duration: 15s;
-    z-index: 0; /* hierarchija gride (objektai mazesniu indeksu toje pacioje grido vietoje bus virs sito objekto) */
+    z-index: 2; /* hierarchija gride (objektai aukstesniu indeksu bus virs sito objekto) */
 }
 @keyframes lydeka_juda {
     0% {
@@ -141,7 +141,7 @@ body {
 .main .eserys {
     display: inline;
     background-color:none;
-    width: 300px;
+    width: 200px;
     align-items: center;
     grid-area: 3/2; /* 3 eilute, 2 stulpelis */
 
@@ -155,7 +155,7 @@ body {
     width: 150px;
 }
 
-.eserys .eserio_myg { /* neveikia */
+.eserys .eserio_myg {
     display: inline;
     margin-top: 32px;
     margin-left: 3px;
@@ -226,6 +226,7 @@ body {
         transform: translate(15px, -150px) scalex(-1);
         rotate: 15deg;
         scale: 0.8;
+        z-index:3;
     }
     76%{
         transform: translate(15px, -150px) scalex(1);
@@ -260,12 +261,63 @@ body {
   background: #abb01e;
   animation: countdown 30s linear forwards;
 }
-
 @keyframes countdown {
   from { width: 0; }
   to   { width: 100%; 
     background: red;
     }
+}
+
+.pralaimejai {
+    display: block;
+    border: line;
+    border-radius: 10px;
+    box-shadow: #0b2447;
+    padding: min(45px, 16%);
+    background-color: rgba(45, 175, 226, 0.5);
+    height: 70vh;
+    max-height: 350px;
+    width: 70vw;
+
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+
+    grid-area: 3/3;
+    z-index: 4;
+
+    animation-name: pralaimejimas;
+    animation-duration: 30s;
+}
+@keyframes pralaimejimas {
+    0% {
+        scale: 0;
+    }
+    99.5%{
+        scale: 0;
+    }
+    100%{
+        scale: 1;
+    }
+}
+
+.text {
+    margin-top: 100px;
+    margin-bottom: 75px;
+    font-family: 'lucida console', sans-serif;
+    color: white;
+}
+
+.pralaimejai_btn {
+    font-family: 'lucida console', sans-serif;
+    color: white;
+    text-decoration: none;
+    background: rgb(206, 113, 69);
+    border-radius: 15px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 20%;
+    padding-right: 20%
 }
 
 @media (min-width: 700px) { /* kai ekrano plotis didesnis nei 700px */
@@ -275,5 +327,8 @@ body {
     .main {
         margin-top: 12vh;
         height: 70vh;
+    }
+    .pralaimejai{
+        font-size: 2rem;
     }
 }
