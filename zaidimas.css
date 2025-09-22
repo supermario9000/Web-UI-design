@@ -29,6 +29,8 @@ body {
     padding-bottom: 20px;
 }
 
+
+
 .banglente {
     max-width: 65%;   
 
@@ -125,7 +127,7 @@ body {
     width: 200px;
 }
 
-.lydeka .lydekos_myg { /* neveikia */
+.lydeka .lydekos_myg {
     display: inline;
     margin-top: 12px;
     padding: 4px;
@@ -134,6 +136,136 @@ body {
     border: green 2px solid;
     border-radius: 50%;
     position: absolute;
+}
+
+.main .eserys {
+    display: inline;
+    background-color:none;
+    width: 300px;
+    align-items: center;
+    grid-area: 3/2; /* 3 eilute, 2 stulpelis */
+
+    animation-name: eserys_juda;
+    animation-iteration-count: infinite;
+    animation-duration: 30s;
+    z-index: 1;
+}
+
+.eserys_img {
+    width: 150px;
+}
+
+.eserys .eserio_myg { /* neveikia */
+    display: inline;
+    margin-top: 32px;
+    margin-left: 3px;
+    padding: 8px;
+    background-color: #1eb051;
+    color: green;
+    border: green 2px solid;
+    border-radius: 50%;
+    position: absolute;
+}
+@keyframes eserys_juda {
+    0% {
+        transform: translate(100px, 150px) scaleX(1); 
+        rotate: 0deg;
+        scale: 1;
+    }
+    10% {
+        transform: translate(300px,15px) scaleX(1);
+        rotate: -15deg;
+        scale: 1;
+    }
+    12%{
+        transform: translate(300px,15px) scaleX(-1);
+        rotate: -15deg;
+        scale: 1.1;
+    }
+    20%{
+        transform: translate(-100px,-30px) scaleX(-1);
+        rotate: -15deg;
+        scale: 0.9;
+    }
+    21%{
+        transform: translate(-100px,-30px) scaleX(1);
+        rotate: -15deg;
+        scale: 0.75;
+    }
+    35% {
+        transform: translate(300px, -10px); 
+        rotate: 0deg;
+        scale: 1;
+    }
+    36%{
+        transform: translate(300px, -10px) scalex(-1); 
+        rotate: 0deg;
+        scale: 1;
+    }
+    50% {
+        transform: translate(0px, 40px) scalex(-1);
+        rotate: 0deg;
+        scale: 1;
+    }
+    51%{
+        transform: translate(0px, 40px) scalex(1);
+        rotate: 0deg;
+        scale: 1;
+    }
+    65%{
+        transform: translate(300px, 40px) scalex(1);
+        rotate: 0deg;
+        scale: 1;
+    }
+    66%{
+        transform: translate(300px, 40px) scalex(-1);
+        rotate: 0deg;
+        scale: 1;
+    }
+    75% {
+        transform: translate(15px, -150px) scalex(-1);
+        rotate: 15deg;
+        scale: 0.8;
+    }
+    76%{
+        transform: translate(15px, -150px) scalex(1);
+        rotate: 0deg;
+        scale: 0.8;
+    }
+    93%{
+        transform: translate(200px, 50px) scaleX(1);
+        rotate: -15deg;
+        scale: 1;
+    }
+    94%{
+        transform: translate(200px, 50px) scaleX(-1);
+        rotate: -15deg;
+        scale: 1;
+    }
+    99%{
+        transform: translate(100px, 150px) scaleX(-1);
+        rotate: 0deg;
+        scale: 1;
+    }
+    100% {
+        transform: translate(100px, 150px) scaleX(1);
+        rotate: 0deg;
+        scale: 1;
+    }
+}
+
+.timer {
+  width: 0;
+  height: 15px;
+  background: #abb01e;
+  animation: countdown 30s linear forwards;
+}
+
+@keyframes countdown {
+  from { width: 0; }
+  to   { width: 100%; 
+    background: red;
+    }
 }
 
 @media (min-width: 700px) { /* kai ekrano plotis didesnis nei 700px */
