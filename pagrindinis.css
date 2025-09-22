@@ -41,4 +41,7 @@ body {
     .banglente {
         max-width: 45%;  
     }
+    .tekstas{
+        font-size:1.7rem;
+    }
 }

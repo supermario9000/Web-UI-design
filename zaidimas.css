@@ -330,3 +330,38 @@ body {
         font-size: 2rem;
     }
 }
+
+/* easter egg */
+
+.main .zuvyte{
+    display: inline;
+    background-color:none;
+    width: 300px;
+    align-items: center;
+    grid-area:5;
+
+    animation-name: zuvyte_juda;
+    animation-duration: 30s;
+    animation-iteration-count: infinite;
+    z-index: 0;
+}
+
+.zuvyte_img {
+    position: absolute;
+    width: 75px;
+}
+
+@keyframes zuvyte_juda {
+  0% {
+    transform: translateX(-200%) translateY(-20px) scale(0);   /* off left, invisible */
+  }
+  70% {
+    transform: translateX(-175%) translateY(-20px) scale(1);   /* entering, full size */
+  }
+  90% {
+    transform: translateX(600%) translateY(-20px) scale(1);    /* almost at right edge */
+  }
+  100% {
+    transform: translateX(625%) translateY(-20px) scale(0);    /* off right, invisible */
+  }
+}
