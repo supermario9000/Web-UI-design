@@ -1,8 +1,11 @@
-# fish-web
+# Web UI design
 
-Informacinių sistemų inžinerijos 2 kurso naudotojo sąsajos kūrimo programos pirmoji užduotis.  
+User Interface university tasks and personal projects.   
 
-Sukūriau reaguojančio stiliaus html dokumentą, pritaikytą visiems dabar naudojamiems ekranams.  
-Dokumento pobūdis - žaidimas.  
+1 project:  
+Fishing game with only html and css. No javascript whatsoever.  
 
-Visas žaidimo funkcionalumas yra padarytas su animacijomis (žuvyčių judėjimas, laikmatis, pralaimėjimo langas).
+
+2 project:
+Simple HTML + CSS + JavaScript calculator. I will make a bomb - inspired calculator which explodes after entering specific numbers.  
+
