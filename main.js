@@ -23,6 +23,31 @@ function display(val) {
   el.textContent = formatted;
 }
 
+// Special-number animation control
+function startSpecialAnimation() {
+  const bomb = document.querySelector('.bomb_light');
+  if (!bomb) return;
+  bomb.classList.add('active');
+}
+
+function stopSpecialAnimation() {
+  const bomb = document.querySelector('.bomb_light');
+  if (!bomb) return;
+  bomb.classList.remove('active');
+}
+
+function checkSpecialTrigger() {
+  try {
+    const needle = String(speacialNumber);
+    if (!needle) return;
+    if (displayvalue && displayvalue.includes(needle)) {
+      startSpecialAnimation();
+    } else {
+      stopSpecialAnimation();
+    }
+  } catch (e) { /* ignore */ }
+}
+
 window.appendNumber = function(value) {
   // Append characters to the expression string used for display.
   if (value == null) return;
@@ -43,16 +68,19 @@ window.appendNumber = function(value) {
 
   displayvalue += valStr;
   display(displayvalue);
+  checkSpecialTrigger();
 };
 
 window.clearDisplay = function() {
   displayvalue = '';
   display(displayvalue);
+  checkSpecialTrigger();
 };
 
 window.deleteLast = function() {
   displayvalue = displayvalue.slice(0, -1);
   display(displayvalue);
+  checkSpecialTrigger();
 };
 
 /* Arithmetic and special operations */
@@ -90,6 +118,7 @@ window.calculateResult = function() {
     result = res;
     displayvalue = String(res);
     display(displayvalue);
+  checkSpecialTrigger();
   } catch (e) {
     console.error('Evaluation error:', e);
     display('Error');
