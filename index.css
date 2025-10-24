@@ -11,14 +11,12 @@ body {
     width: 450px;
     height: 95vh;
     padding: 0;
-    border: 2px solid #000;
-    border-radius: 10px;
-    /* Background image (bomb) */
+
     background-image: url("assets/bomba_csgo.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
-    /* Add a subtle overlay to keep controls readable */
+
     position: relative;
 }
 
@@ -30,14 +28,13 @@ body {
     pointer-events: none;
 }
 
-/* Ensure inner content sits above the overlay */
 .calculator > * {
     position: relative;
     z-index: 1;
 }
 
 .bomb_light {
-    background-color: rgba(255, 0, 0, 0.2);
+    /* background-color: rgba(255, 0, 0, 0.2); */
     width: 25px;
     height: 35px;
     position: absolute;
@@ -46,23 +43,57 @@ body {
 }
 
 .display {
-    background-color: rgba(255, 255, 255, 0.8);
+    /* background-color: rgba(255, 255, 255, 0.8); */
     width: 45%;
     height: 85px;
     position: absolute;
     top: 140px;
     left: 137px;
+    font-size: 1.4rem;
+    white-space: pre-wrap; /* respect inserted newlines */
+    overflow-wrap: anywhere;
+    overflow-y: auto;
 }
 
 .button_grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(5, 1fr);
-    gap: 10px;
+    gap: 8px;
     position: absolute;
-    background-color: rgba(200, 200, 200, 0.2);
+    /* background-color: rgba(200, 200, 200, 0.2); */
     width: 197px;
     height: 200px;
     top: 298px;
     left: 110px;
+}
+
+.button_grid {
+    min-width: 0;
+}
+
+.button {
+    box-sizing: border-box;
+    background-color: transparent;
+    border: none; /* remove visible border */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    font-size: 1rem;
+    line-height: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.button:hover {
+    background-color: rgba(9, 0, 0, 0.1);
+}
+
+/* Increase visual gap between row 2 and row 3 without changing button size or grid layout.*/
+.button_grid > .button:nth-child(n+11):nth-child(-n+15) {
+    transform: translateY(3px);
+    will-change: transform;
 }
