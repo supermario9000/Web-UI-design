@@ -97,7 +97,6 @@ window.sumOperation = function() { appendNumber('+'); };
 window.calculateResult = function() {
   if (!displayvalue) return;
   try {
-    // Map printable/display tokens to JS-evaluable expression
     let expr = String(displayvalue);
 
     expr = expr.replace(/,/g, '.');
@@ -105,7 +104,7 @@ window.calculateResult = function() {
     
     expr = expr.replace(/√\(/g, 'Math.sqrt(');
     expr = expr.replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(');
-    // Evaluate (note: Function is used only for this demo)
+    
     const res = Function('return (' + expr + ')')();
     if (res === Infinity) {
       infinityError();
