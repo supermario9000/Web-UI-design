@@ -1,0 +1,68 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #938a75;
+}
+
+.calculator {
+    width: 450px;
+    height: 95vh;
+    padding: 0;
+    border: 2px solid #000;
+    border-radius: 10px;
+    /* Background image (bomb) */
+    background-image: url("assets/bomba_csgo.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    /* Add a subtle overlay to keep controls readable */
+    position: relative;
+}
+
+.calculator::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+/* Ensure inner content sits above the overlay */
+.calculator > * {
+    position: relative;
+    z-index: 1;
+}
+
+.bomb_light {
+    background-color: rgba(255, 0, 0, 0.2);
+    width: 25px;
+    height: 35px;
+    position: absolute;
+    top: 35px;
+    left: 49px;
+}
+
+.display {
+    background-color: rgba(255, 255, 255, 0.8);
+    width: 45%;
+    height: 85px;
+    position: absolute;
+    top: 140px;
+    left: 137px;
+}
+
+.button_grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 10px;
+    position: absolute;
+    background-color: rgba(200, 200, 200, 0.2);
+    width: 197px;
+    height: 200px;
+    top: 298px;
+    left: 110px;
+}

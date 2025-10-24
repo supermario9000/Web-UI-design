@@ -1,12 +1,6 @@
 # Web UI design
 
-User Interface university tasks and personal projects.   
+Bomb picture reference: https://www.pngwing.com/en/free-png-nutnr  
 
-1 project:  
-Fishing game with only html and css. No javascript whatsoever.  
-https://github.com/supermario9000/Web-UI-design/tree/zuvyciu-zaidimas-be-JS  
-The release is published as "v1_no_js". Project text and comments are lithuanian.  
-
-2 project:  
-Simple HTML + CSS + JavaScript calculator. I will make a bomb - inspired calculator which explodes after entering specific numbers.  
+Everything in assets is hand-drawn (selfmade), therefore any use of assets without my consent would be taken legal action against under European copyright laws.  
 
