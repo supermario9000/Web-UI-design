@@ -1,4 +1,4 @@
-const speacialNumber = 7355608;
+const specialNumber = 7355608;
 let displayvalue = "";
 let result = 0;
 
@@ -38,7 +38,7 @@ function stopSpecialAnimation() {
 
 function checkSpecialTrigger() {
   try {
-    const needle = String(speacialNumber);
+    const needle = String(specialNumber);
     if (!needle) return;
     if (displayvalue && displayvalue.includes(needle)) {
       startSpecialAnimation();
