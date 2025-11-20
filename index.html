@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="lt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Anketos forma</title>
+    <style>
+      /* Minimal styling to show black/white dot visuals for radios */
+      .option-label { display:flex; align-items:center; gap:0.5rem; margin:0.15rem 0; }
+      .option-input { position:absolute; opacity:0; width:0; height:0; }
+      .dot { width:18px; height:18px; border-radius:50%; border:1px solid #000; display:inline-block; box-sizing:border-box; }
+      .option-input:checked + .dot { background:#000; }
+      fieldset { margin:0.75rem 0; padding:0.6rem; }
+      label { display:block; margin:0.25rem 0; }
+      .inline { display:flex; gap:1rem; align-items:center; }
+      .subgroup { margin-left:1.5rem; }
+      .hidden { display:none; }
+    </style>
+  </head>
+  <body>
+    <h1>Anketos forma</h1>
+
+    <form id="personal-data-form" action="#" method="post" enctype="multipart/form-data">
+
+      <fieldset>
+        <legend>Lytis</legend>
+        <label class="option-label"><input class="option-input" type="radio" name="lytis" value="vyras" required><span class="dot" aria-hidden="true"></span> Vyras</label>
+        <label class="option-label"><input class="option-input" type="radio" name="lytis" value="moteris"><span class="dot" aria-hidden="true"></span> Moteris</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Vardas / pavardė</legend>
+        <label for="vardas">Vardas</label>
+        <input id="vardas" name="vardas" type="text" required />
+
+        <label for="antras_vardas">Antrasis vardas</label>
+        <input id="antras_vardas" name="antras_vardas" type="text" />
+
+        <label for="pavarde">Pavardė</label>
+        <input id="pavarde" name="pavarde" type="text" required />
+      </fieldset>
+
+      <fieldset>
+        <legend>Gimimo duomenys</legend>
+        <label for="gimimo_data">Gimimo data</label>
+        <input id="gimimo_data" name="gimimo_data" type="date" />
+
+        <label for="asmens_kodas">Asmens kodas</label>
+        <input id="asmens_kodas" name="asmens_kodas" type="text" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Išsilavinimas</legend>
+        <label class="option-label"><input class="option-input" type="radio" name="issilavinimas" value="pagrindinis" required><span class="dot"></span> Pagrindinis</label>
+        <label class="option-label"><input class="option-input" type="radio" name="issilavinimas" value="vidurinis"><span class="dot"></span> Vidurinis</label>
+        <label class="option-label"><input class="option-input" type="radio" name="issilavinimas" value="profesinis"><span class="dot"></span> Profesinis</label>
+        <label class="option-label"><input class="option-input" type="radio" name="issilavinimas" value="aukstasis_kolegijinis"><span class="dot"></span> Aukštasis - kolegijinis</label>
+        <label class="option-label"><input class="option-input" type="radio" name="issilavinimas" value="aukstasis_universitetinis"><span class="dot"></span> Aukštasis - universitetinis</label>
+
+        <div class="subgroup">
+          <label for="paskutine_istaiga">Paskutinė baigta mokslo / studijų įstaiga</label>
+          <input id="paskutine_istaiga" name="paskutine_istaiga" type="text" />
+
+          <label for="baigimo_metai">Baigimo metai</label>
+          <input id="baigimo_metai" name="baigimo_metai" type="number" min="1900" max="2100" />
+
+          <label for="kvalifikacija">Kvalifikacija (specialybės pavadinimas)</label>
+          <input id="kvalifikacija" name="kvalifikacija" type="text" />
+
+          <label for="mokslo_laipsnis">Mokslo laipsnis</label>
+          <input id="mokslo_laipsnis" name="mokslo_laipsnis" type="text" placeholder="pvz. Bakalauro, Magistro, Profesinio bakalauro" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Kontaktai</legend>
+        <label for="telefonas">Telefono numeris</label>
+        <input id="telefonas" name="telefonas" type="tel" placeholder="+3706xxxxxxx" />
+
+        <label for="el_pastas">El. pašto adresas</label>
+        <input id="el_pastas" name="el_pastas" type="email" />
+
+        <label for="adresas">Gyvenamoji vieta (adresas)</label>
+        <input id="adresas" name="adresas" type="text" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Vedybinė padėtis</legend>
+        <label class="option-label"><input class="option-input" type="radio" name="vedybine" value="nevedes" required><span class="dot"></span> Nevedęs / Netekėjusi</label>
+        <label class="option-label"><input class="option-input" type="radio" name="vedybine" value="vedes"><span class="dot"></span> Vedęs / Ištekėjusi</label>
+        <label class="option-label"><input class="option-input" type="radio" name="vedybine" value="issiskyres"><span class="dot"></span> Išsiskyręs(-usi)</label>
+
+        <div class="subgroup" id="sutuoktinis_group">
+          <label for="sutuoktinis_vardas">Sutuoktinis(-ė) vardas</label>
+          <input id="sutuoktinis_vardas" name="sutuoktinis_vardas" type="text" />
+
+          <label for="sutuoktinis_pavarde">Sutuoktinis(-ė) pavardė</label>
+          <input id="sutuoktinis_pavarde" name="sutuoktinis_pavarde" type="text" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Profesinė padėtis</legend>
+        <label class="option-label"><input class="option-input" type="radio" name="prof_padetis" value="studijuoja" required><span class="dot"></span> Studijuoja</label>
+        <label class="option-label"><input class="option-input" type="radio" name="prof_padetis" value="dirba"><span class="dot"></span> Dirba</label>
+        <label class="option-label"><input class="option-input" type="radio" name="prof_padetis" value="nedirba"><span class="dot"></span> Nedirba</label>
+        <label class="option-label"><input class="option-input" type="radio" name="prof_padetis" value="atostogos"><span class="dot"></span> Motinystės / tėvystės atostogose</label>
+
+        <div class="subgroup" id="studijuoja_group">
+          <strong>Studijuoja — duomenys</strong>
+          <label for="stud_pakopa">Studijų pakopa</label>
+          <input id="stud_pakopa" name="stud_pakopa" type="text" />
+
+          <label for="stud_kursas">Kursas</label>
+          <input id="stud_kursas" name="stud_kursas" type="text" />
+
+          <label for="stud_istaiga">Įstaiga</label>
+          <input id="stud_istaiga" name="stud_istaiga" type="text" />
+
+          <label for="tiketini_baigimo_metai">Tikėtini baigimo metai</label>
+          <input id="tiketini_baigimo_metai" name="tiketini_baigimo_metai" type="number" min="1900" max="2100" />
+        </div>
+
+        <div class="subgroup" id="dirba_group">
+          <strong>Dirba — duomenys</strong>
+          <label for="darbo_istaiga">Darbo įstaiga</label>
+          <input id="darbo_istaiga" name="darbo_istaiga" type="text" />
+
+          <label for="pareigos">Pareigos</label>
+          <input id="pareigos" name="pareigos" type="text" />
+        </div>
+
+        <div class="subgroup" id="nedirba_group">
+          <label for="nedarbo_priezastis">Nedarbo priežastis</label>
+          <input id="nedarbo_priezastis" name="nedarbo_priezastis" type="text" />
+        </div>
+
+        <div class="subgroup" id="atostogos_group">
+          <label for="atostogu_pabaiga">Atostogų pabaiga</label>
+          <input id="atostogu_pabaiga" name="atostogu_pabaiga" type="date" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Darbo patirtis</legend>
+        <label class="option-label"><input class="option-input" type="radio" name="turi_darbo_patirtis" value="taip" required><span class="dot"></span> Turiu darbo patirties</label>
+        <label class="option-label"><input class="option-input" type="radio" name="turi_darbo_patirtis" value="ne"><span class="dot"></span> Neturiu darbo patirties</label>
+
+        <div class="subgroup" id="darbo_patirtis_group">
+          <label for="darbo_patirtis">Darbo patirtis (metai)</label>
+          <input id="darbo_patirtis" name="darbo_patirtis" type="number" min="0" />
+        </div>
+      </fieldset>
+
+      <fieldset id="darbo_sritis_fieldset">
+        <legend>Darbo sritis</legend>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="teise"><span class="dot"></span> Teisė</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="viešasis_sektorius"><span class="dot"></span> Viešasis sektorius</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="sveikatos_apsauga"><span class="dot"></span> Sveikatos apsauga</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="farmacija"><span class="dot"></span> Farmacija</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="pramone"><span class="dot"></span> Pramonė / gamyba</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="it"><span class="dot"></span> IT</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="prekyba"><span class="dot"></span> Prekyba</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="krasto_apsauga"><span class="dot"></span> Krašto apsauga</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="vidaus_reikalai"><span class="dot"></span> Vidaus reikalų sistema</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="klientu_aptarnavimas"><span class="dot"></span> Klientų aptarnavimas ir paslaugos</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="transportas"><span class="dot"></span> Transportas</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="kultura_pramogos"><span class="dot"></span> Kultūra ir pramogos</label>
+        <label class="option-label"><input class="option-input" type="radio" name="darbo_sritis" value="svedimas_studijos"><span class="dot"></span> Švietimas / studijos</label>
+      </fieldset>
+
+      <button type="submit">Siųsti</button>
+      <button type="reset">Išvalyti</button>
+    </form>
+
+    <script src="main.js" defer></script>
+  </body>
+</html>
