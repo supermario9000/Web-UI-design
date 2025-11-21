@@ -51,7 +51,7 @@ fieldset.invalid-required {
 }
 
 /* Layout and form styling */
-body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f5f7fb; color:#111; margin:0; padding:2rem; display:flex; justify-content:center; }
+body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f5f7fb; color:#111; margin:0; padding:2rem; display:flex; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
 #personal-data-form { width:100%; max-width:980px; background:#fff; padding:2rem; border-radius:10px; box-shadow:0 6px 18px rgba(13,38,76,0.06); box-sizing:border-box; }
 fieldset { margin:0.75rem 0; padding:1rem; border-radius:8px; border:1px solid #e6e9ef; background:#fff; }
 legend { font-weight:700; }

@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			birthEmpty: 'Prašome įvesti gimimo datą (formatas: yyyy/mm/dd)',
 			birthFormat: 'Netinkamas formatas. Įveskite datą formatu yyyy/mm/dd',
 			moksloPlaceholder: 'pvz. Bakalauro, Magistro, Profesinio bakalauro'
+			,submitSuccess: 'Forma sėkmingai pateikta'
 		},
 		en: {
 			emptyField: 'Please fill out this field',
@@ -89,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			birthEmpty: 'Please enter birth date (format: yyyy/mm/dd)',
 			birthFormat: 'Invalid format. Enter date as yyyy/mm/dd',
 			moksloPlaceholder: 'e.g. Bachelor, Master, Professional Bachelor'
+			,submitSuccess: 'Form submitted successfully'
 		}
 	};
 
@@ -192,6 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				return true;
 			}
 		}
+
+		// Alerts will be shown on submit (standard alert()); no form-level element is used.
 
 		// Birthdate: mask input and validate calendar semantics
 		const gimimoInput = document.getElementById('gimimo_data');
@@ -376,7 +380,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			// collect all radio/checkbox groups (include optional groups too)
 			const allRadios = Array.from(form.querySelectorAll('input[type="radio"], input[type="checkbox"]'));
-			const groupNames = Array.from(new Set(allRadios.map(i => i.name).filter(Boolean)));
+			// exclude the 'vedybine' (marital status) group from progress calculation
+			const groupNames = Array.from(new Set(allRadios.map(i => i.name).filter(Boolean))).filter(n => n !== 'vedybine');
 
 			let total = 0, done = 0;
 
@@ -481,6 +486,11 @@ document.addEventListener('DOMContentLoaded', () => {
 							const ok = validatePersonalIdInput();
 							if (!ok) {
 								el.classList.add('invalid-required');
+								// show a form-level message under the form instead of modal alert
+								const birth = document.getElementById('gimimo_data')?.value;
+								const res = personalIdVerification(el.value, birth);
+								const msg = (res && res.reason === 'length') ? messages[currentLang].personalIdFormat : messages[currentLang].personalIdMismatch;
+								// alert suppressed: browser will show validation messages in-form
 								foundInvalid = true;
 							}
 						}
@@ -496,8 +506,78 @@ document.addEventListener('DOMContentLoaded', () => {
 				form.reportValidity();
 				return false;
 			}
-			// otherwise allow submit to proceed
-			return true;
+			// otherwise allow submit to proceed: serialize and save form data, then log it
+			try {
+				const data = {};
+				// iterate form controls to build a sensible object
+				Array.from(form.elements).forEach(el => {
+					if (!el.name) return;
+					const name = el.name;
+					const type = el.type;
+					if (type === 'fieldset' || el.disabled) return;
+					if (type === 'radio') {
+						if (!(name in data)) data[name] = null;
+						if (el.checked) data[name] = el.value;
+						return;
+					}
+					if (type === 'checkbox') {
+						// collect multiple checkboxes with same name into arrays; single checkbox -> boolean
+						const group = Array.from(form.querySelectorAll(`input[name="${name}"][type="checkbox"]`));
+						if (group.length > 1) {
+							if (!Array.isArray(data[name])) data[name] = [];
+							if (el.checked) data[name].push(el.value);
+						} else {
+							data[name] = !!el.checked;
+						}
+						return;
+					}
+					if (type === 'select-multiple') {
+						data[name] = Array.from(el.options).filter(o => o.selected).map(o => o.value);
+						return;
+					}
+					// default: value
+					data[name] = el.value;
+				});
+				// persist to localStorage and log to console
+				try { localStorage.setItem('formSubmission', JSON.stringify(data)); } catch (err) { /* ignore storage errors */ }
+				console.log('Form submitted successfully. Serialized data object:');
+				console.log(data);
+				console.table(data);
+				// prevent default navigation/reload and show a success message on the page
+				e.preventDefault();
+				function showSuccess(msg) {
+					let el = document.getElementById('form-success');
+					if (!el) {
+						el = document.createElement('div');
+						el.id = 'form-success';
+						el.setAttribute('role', 'status');
+						el.setAttribute('aria-live', 'polite');
+						// styling: make the success box appear below the form even when body uses flex layout
+						el.style.display = 'block';
+						el.style.width = '100%';
+						el.style.boxSizing = 'border-box';
+						el.style.maxWidth = '980px';
+						el.style.margin = '0.75rem auto 0';
+						// when the page root uses flex layout, force the success element to occupy full row
+						el.style.flexBasis = '100%';
+						el.style.alignSelf = 'center';
+						el.style.textAlign = 'center';
+						el.style.padding = '0.6rem 0.75rem';
+						el.style.background = 'rgba(16, 185, 129, 0.08)';
+						el.style.color = '#065f46';
+						el.style.border = '1px solid rgba(16,185,129,0.2)';
+						el.style.borderRadius = '6px';
+						const formEl = document.getElementById('personal-data-form');
+						if (formEl && formEl.parentNode) formEl.parentNode.insertBefore(el, formEl.nextSibling);
+					}
+					el.textContent = msg;
+				}
+				showSuccess(messages[currentLang].submitSuccess || 'Form submitted successfully');
+			} catch (err) {
+				console.error('Error serializing form data:', err);
+			}
+			// we've prevented navigation and shown a success message; keep the page as-is
+			return false;
 		});
 
 		// --- Robust delegated progress updater ---
@@ -536,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			const requiredSingles = Array.from(form.querySelectorAll('[required]')).filter(el => el.type !== 'radio' && el.type !== 'checkbox');
 			const allChoices = Array.from(form.querySelectorAll('input[type="radio"], input[type="checkbox"]'));
-			const groupNames = Array.from(new Set(allChoices.map(i => i.name).filter(Boolean)));
+			const groupNames = Array.from(new Set(allChoices.map(i => i.name).filter(Boolean))).filter(n => n !== 'vedybine');
 
 			let total = 0, done = 0;
 
