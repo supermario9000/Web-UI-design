@@ -331,8 +331,18 @@ document.addEventListener('DOMContentLoaded', () => {
 						}
 				}
 			});
-			// allow browser to block submission for invalid controls; we don't prevent default here
-			return !foundInvalid;
+			// If we found invalid controls, prevent submission, show validation UI and focus first invalid
+			if (foundInvalid) {
+				e.preventDefault();
+				// focus the first element that has invalid-required class or the first :invalid
+				const firstInvalid = form.querySelector('.invalid-required') || form.querySelector(':invalid');
+				if (firstInvalid && typeof firstInvalid.focus === 'function') firstInvalid.focus();
+				// ask the browser to show validation messages (will use any customValidity set earlier)
+				form.reportValidity();
+				return false;
+			}
+			// otherwise allow submit to proceed
+			return true;
 		});
 	}
 
