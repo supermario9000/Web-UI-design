@@ -1,5 +1,28 @@
 // Moved form interaction logic from inline script in index.html
 document.addEventListener('DOMContentLoaded', () => {
+	// translation and validation messages
+	const messages = {
+		lt: {
+			emptyField: 'Prašome užpildyti šį lauką',
+			groupMissing: 'Prašome pasirinkti vieną iš variantų',
+			personalIdFormat: 'Asmens kodas turi būti 11 skaitmenų',
+			personalIdMismatch: 'Asmens kodas neatitinka gimimo datos',
+			birthEmpty: 'Prašome įvesti gimimo datą (formatas: yyyy/mm/dd)',
+			birthFormat: 'Netinkamas formatas. Įveskite datą formatu yyyy/mm/dd',
+			moksloPlaceholder: 'pvz. Bakalauro, Magistro, Profesinio bakalauro'
+		},
+		en: {
+			emptyField: 'Please fill out this field',
+			groupMissing: 'Please select one of the options',
+			personalIdFormat: 'Personal ID must be 11 digits',
+			personalIdMismatch: 'Personal ID does not match birth date',
+			birthEmpty: 'Please enter birth date (format: yyyy/mm/dd)',
+			birthFormat: 'Invalid format. Enter date as yyyy/mm/dd',
+			moksloPlaceholder: 'e.g. Bachelor, Master, Professional Bachelor'
+		}
+	};
+
+	let currentLang = localStorage.getItem('lang') || 'lt';
 	// Spouse visibility
 	const vedybineRadios = document.querySelectorAll('input[name="vedybine"]');
 	const sutuoktinisGroup = document.getElementById('sutuoktinis_group');
@@ -41,11 +64,438 @@ document.addEventListener('DOMContentLoaded', () => {
 	// initialize
 	updateDarboPatirtis();
 
-	// Placeholder submit handler (server-side validation expected)
+		// --- Date helpers: simple mask (yyyy/mm/dd) and calendar validation ---
+		function maskDateValue(value) {
+			const digits = (value || '').replace(/\D/g, '').slice(0, 8);
+			if (digits.length <= 4) return digits;
+			if (digits.length <= 6) return digits.slice(0,4) + '/' + digits.slice(4);
+			return digits.slice(0,4) + '/' + digits.slice(4,6) + '/' + digits.slice(6);
+		}
+
+		function isValidCalendarDate(s) {
+			// expect yyyy/mm/dd
+			if (!/^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$/.test(s)) return false;
+			const [y, m, d] = s.split('/').map(n => parseInt(n,10));
+			if (m < 1 || m > 12) return false;
+			if (d < 1) return false;
+			const mdays = [31, (y%4===0 && (y%100!==0 || y%400===0)) ? 29 : 28, 31,30,31,30,31,31,30,31,30,31];
+			if (d > mdays[m-1]) return false;
+			return true;
+		}
+
+		// Verify Lithuanian-style personal id: 11 digits, structure: 1 digit + YYMMDD + 3 digits + checksum
+		// We check length and that the YYMMDD portion matches the provided birthdate (yyyy/mm/dd -> YYMMDD)
+		function personalIdVerification(personalId, birthYmd) {
+			if (!personalId) return { valid: false, reason: 'empty' };
+			const digits = String(personalId).replace(/\D/g, '');
+			if (digits.length !== 11) return { valid: false, reason: 'length' };
+			// expect birthYmd in yyyy/mm/dd; convert to YYMMDD
+			if (!birthYmd || !isValidCalendarDate(birthYmd)) return { valid: false, reason: 'birth_invalid' };
+			const [y, m, d] = birthYmd.split('/').map(n => n.padStart(2, '0'));
+			const yy = y.slice(-2);
+			const yymmdd = yy + m + d; // 6 chars
+			// In Lithuanian personal id, positions 2-7 (index 1..6) are YYMMDD
+			const idDatePart = digits.slice(1, 7);
+			if (idDatePart !== yymmdd) return { valid: false, reason: 'mismatch', idDatePart, yymmdd };
+			// basic structural pass
+			return { valid: true };
+		}
+
+		// helper: validate and set customValidity on the asmens_kodas input
+		function validatePersonalIdInput() {
+			const pid = document.getElementById('asmens_kodas');
+			if (!pid) return true;
+			const val = pid.value.trim();
+			if (!val) {
+				pid.setCustomValidity('');
+				return true; // empty handled by required handling
+			}
+			const birth = document.getElementById('gimimo_data')?.value;
+			const res = personalIdVerification(val, birth);
+			if (!res.valid) {
+				if (res.reason === 'length') pid.setCustomValidity(messages[currentLang].personalIdFormat);
+				else if (res.reason === 'mismatch' || res.reason === 'birth_invalid') pid.setCustomValidity(messages[currentLang].personalIdMismatch);
+				else pid.setCustomValidity(messages[currentLang].personalIdFormat);
+				return false;
+			} else {
+				pid.setCustomValidity('');
+				return true;
+			}
+		}
+
+		// Birthdate: mask input and validate calendar semantics
+		const gimimoInput = document.getElementById('gimimo_data');
+		if (gimimoInput) {
+			gimimoInput.addEventListener('input', (e) => {
+				const before = gimimoInput.value;
+				const masked = maskDateValue(before);
+				if (masked !== before) gimimoInput.value = masked;
+				// clear custom validity while typing; if full length, run calendar validation
+				gimimoInput.setCustomValidity('');
+				if (gimimoInput.value.length === 10) {
+					if (!isValidCalendarDate(gimimoInput.value)) {
+						gimimoInput.setCustomValidity(messages[currentLang].birthFormat);
+					} else {
+						gimimoInput.setCustomValidity('');
+					}
+				}
+			});
+
+			gimimoInput.addEventListener('invalid', (e) => {
+				if (!gimimoInput.value) {
+					gimimoInput.setCustomValidity(messages[currentLang].birthEmpty);
+				} else if (!isValidCalendarDate(gimimoInput.value)) {
+					gimimoInput.setCustomValidity(messages[currentLang].birthFormat);
+				}
+			});
+		}
+
+		// Atostogų pabaiga - same mask and calendar validation
+		const atostoguInput = document.getElementById('atostogu_pabaiga');
+		if (atostoguInput) {
+			atostoguInput.addEventListener('input', (e) => {
+				const before = atostoguInput.value;
+				const masked = maskDateValue(before);
+				if (masked !== before) atostoguInput.value = masked;
+				atostoguInput.setCustomValidity('');
+				if (atostoguInput.value.length === 10) {
+					if (!isValidCalendarDate(atostoguInput.value)) {
+						atostoguInput.setCustomValidity(messages[currentLang].birthFormat);
+					} else {
+						atostoguInput.setCustomValidity('');
+					}
+				}
+			});
+
+			atostoguInput.addEventListener('invalid', () => {
+				if (!atostoguInput.value) {
+					atostoguInput.setCustomValidity(messages[currentLang].birthEmpty);
+				} else if (!isValidCalendarDate(atostoguInput.value)) {
+					atostoguInput.setCustomValidity(messages[currentLang].birthFormat);
+				}
+			});
+		}
+
+		// Hide or show marital-status (vedybine) depending on age >= 16
+		function computeAgeFromYMD(ymd) {
+			if (!ymd || !isValidCalendarDate(ymd)) return null;
+			const [y, m, d] = ymd.split('/').map(n => parseInt(n,10));
+			const today = new Date();
+			let age = today.getFullYear() - y;
+			if (today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d)) {
+				age -= 1;
+			}
+			return age;
+		}
+
+		function updateVedybineVisibility() {
+			const vedyFs = document.querySelector('input[name="vedybine"]')?.closest('fieldset');
+			if (!vedyFs) return;
+			const value = document.getElementById('gimimo_data')?.value;
+			const age = computeAgeFromYMD(value);
+			if (age === null) {
+				// hide until valid birthdate entered
+				vedyFs.style.display = 'none';
+				// clear selection
+				vedyFs.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+				// also hide spouse subgroup
+				if (sutuoktinisGroup) sutuoktinisGroup.classList.add('hidden');
+				return;
+			}
+			if (age >= 16) {
+				vedyFs.style.display = '';
+			} else {
+				vedyFs.style.display = 'none';
+				vedyFs.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+				if (sutuoktinisGroup) sutuoktinisGroup.classList.add('hidden');
+			}
+		}
+
+		// wire age-based visibility to birthdate input
+		if (gimimoInput) {
+			// run on init
+			updateVedybineVisibility();
+			// also update whenever birthdate changes
+			gimimoInput.addEventListener('input', updateVedybineVisibility);
+			// also re-validate personal id whenever birthdate changes
+			gimimoInput.addEventListener('input', validatePersonalIdInput);
+				// validate pid as user types
+				const pidEl = document.getElementById('asmens_kodas');
+				if (pidEl) pidEl.addEventListener('input', validatePersonalIdInput);
+		}
+
+	// Mark required labels/fieldsets and add submit-time invalid-state styling
 	const form = document.getElementById('personal-data-form');
 	if (form) {
+		// find all required controls inside the form
+		const requiredControls = Array.from(form.querySelectorAll('[required]'));
+
+		// Add visual '*' to labels or fieldsets for required fields
+		// Add visual '*' to labels for required fields.
+		// For radios/checkboxes we add the star to each option label instead of the fieldset.
+		requiredControls.forEach(el => {
+			if (el.type === 'radio' || el.type === 'checkbox') {
+				// add required mark to the labels that wrap or reference the inputs in this group
+				const name = el.name;
+				const inputs = Array.from(form.querySelectorAll(`input[name="${name}"]`));
+				inputs.forEach(inp => {
+					// label may wrap the input or be a for="id" label
+					let lbl = inp.closest('label');
+					if (!lbl && inp.id) lbl = form.querySelector(`label[for="${inp.id}"]`);
+					if (lbl) lbl.classList.add('required-label');
+				});
+			} else if (el.id) {
+				const lbl = form.querySelector(`label[for="${el.id}"]`);
+				if (lbl) lbl.classList.add('required-label');
+			}
+		});
+
+		// clear invalid marker and custom validity as user edits
+		requiredControls.forEach(el => {
+			const ev = (el.type === 'radio' || el.type === 'checkbox') ? 'change' : 'input';
+			el.addEventListener(ev, () => {
+				if (el.type === 'radio') {
+					// remove invalid class from the group fieldset when any selected
+					const name = el.name;
+					const radios = Array.from(form.querySelectorAll(`input[name="${name}"]`));
+					const any = radios.some(r => r.checked);
+					const fs = el.closest('fieldset');
+					if (fs) {
+						if (any) fs.classList.remove('invalid-required');
+					}
+					// clear custom validity for the group
+					radios.forEach(r => r.setCustomValidity(''));
+				} else {
+					if (el.checkValidity()) el.classList.remove('invalid-required');
+					el.setCustomValidity('');
+				}
+			});
+
+			// provide Lithuanian custom messages on invalid for empty required fields
+			el.addEventListener('invalid', (ev) => {
+				// keep specialized handlers (e.g. birthdate, leave date) intact
+				if (el.id === 'gimimo_data' || el.id === 'atostogu_pabaiga') return;
+
+				if (el.type === 'radio' || el.type === 'checkbox') {
+					const name = el.name;
+					const radios = Array.from(form.querySelectorAll(`input[name="${name}"]`));
+					const any = radios.some(r => r.checked);
+					if (!any) {
+						// set message on all radios in group so browser shows it
+						radios.forEach(r => r.setCustomValidity(messages[currentLang].groupMissing));
+					}
+				} else {
+					if (el.validity.valueMissing) {
+						el.setCustomValidity(messages[currentLang].emptyField);
+					}
+				}
+			});
+		});
+
+		// On submit, mark invalid controls with class 'invalid-required' and add 'was-validated' to form
 		form.addEventListener('submit', (e) => {
-			// no-op for now; keep default behaviour
+			form.classList.add('was-validated');
+			let foundInvalid = false;
+			requiredControls.forEach(el => {
+				if (el.type === 'radio' || el.type === 'checkbox') {
+					const name = el.name;
+					const radios = Array.from(form.querySelectorAll(`input[name="${name}"]`));
+					const any = radios.some(r => r.checked);
+					const fs = el.closest('fieldset');
+					if (!any) {
+						if (fs) fs.classList.add('invalid-required');
+						// set Lithuanian custom validity on the group so browser shows it
+							radios.forEach(r => r.setCustomValidity(messages[currentLang].groupMissing));
+						foundInvalid = true;
+					} else {
+						if (fs) fs.classList.remove('invalid-required');
+						radios.forEach(r => r.setCustomValidity(''));
+					}
+				} else {
+					if (!el.checkValidity()) {
+						el.classList.add('invalid-required');
+						// if empty, set Lithuanian prompt
+							if (el.validity.valueMissing) el.setCustomValidity(messages[currentLang].emptyField);
+						foundInvalid = true;
+					} else {
+						el.classList.remove('invalid-required');
+						el.setCustomValidity('');
+					}
+						// additional validation: if this is personal id, re-check consistency with birthdate
+						if (el.id === 'asmens_kodas' && el.value) {
+							const ok = validatePersonalIdInput();
+							if (!ok) {
+								el.classList.add('invalid-required');
+								foundInvalid = true;
+							}
+						}
+				}
+			});
+			// allow browser to block submission for invalid controls; we don't prevent default here
+			return !foundInvalid;
 		});
 	}
+
+		// --- Language switching (LT / EN) ---
+		const ltToEn = {
+			'Anketos forma': 'Personal Data Form',
+			'Lytis': 'Gender',
+			'Vardas / pavardė': 'Name / Surname',
+			'Gimimo duomenys': 'Birth information',
+			'Išsilavinimas': 'Education',
+			'Kontaktai': 'Contact',
+			'Vedybinė padėtis': 'Marital status',
+			'Profesinė padėtis': 'Professional status',
+			'Darbo patirtis': 'Work experience',
+			'Darbo sritis': 'Field of work',
+			'Vardas': 'First name',
+			'Antrasis vardas': 'Middle name',
+			'Pavardė': 'Surname',
+			'Gimimo data (formatas: yyyy/mm/dd)': 'Birth date (format: yyyy/mm/dd)',
+			'Asmens kodas': 'Personal code',
+			'Paskutinė baigta mokslo / studijų įstaiga': 'Last completed institution',
+			'Baigimo metai': 'Graduation year',
+			'Kvalifikacija (specialybės pavadinimas)': 'Qualification (specialty name)',
+			'Mokslo laipsnis': 'Academic degree',
+			'Telefono numeris': 'Phone number',
+			'El. pašto adresas': 'Email address',
+			'Gyvenamoji vieta (adresas)': 'Address',
+			'Sutuoktinis(-ė) vardas': 'Spouse first name',
+			'Sutuoktinis(-ė) pavardė': 'Spouse surname',
+			'Studijų pakopa': 'Study level',
+			'Kursas': 'Course',
+			'Įstaiga': 'Institution',
+			'Tikėtini baigimo metai': 'Expected graduation year',
+			'Darbo įstaiga': 'Employer',
+			'Pareigos': 'Position',
+			'Nedarbo priežastis': 'Reason for unemployment',
+			'Atostogų pabaiga': 'End of leave',
+			'Darbo patirtis (metai)': 'Work experience (years)',
+			'Turiu darbo patirties': 'I have work experience',
+			'Neturiu darbo patirties': "I don't have work experience",
+			'Siųsti': 'Submit',
+			'Išvalyti': 'Reset',
+			'Pagrindinis': 'Primary',
+			'Vidurinis': 'Secondary',
+			'Profesinis': 'Vocational',
+			'Aukštasis - kolegijinis': 'Higher - college',
+			'Aukštasis - universitetinis': 'Higher - university',
+			'Nevedęs / Netekėjusi': 'Single',
+			'Vedęs / Ištekėjusi': 'Married',
+			'Išsiskyręs(-usi)': 'Divorced',
+			'Studijuoja': 'Studying',
+			'Studijuoja — duomenys': 'Studying — details',
+			'Dirba': 'Working',
+			'Nedirba': 'Not working',
+			'Motinystės / tėvystės atostogose': 'On maternity/paternity leave',
+			'Teisė': 'Law',
+			'Viešasis sektorius': 'Public sector',
+			'Sveikatos apsauga': 'Healthcare',
+			'Farmacija': 'Pharmacy',
+			'Pramonė / gamyba': 'Industry / Manufacturing',
+			'IT': 'IT',
+			'Prekyba': 'Trade',
+			'Krašto apsauga': 'Defense',
+			'Vidaus reikalų sistema': 'Internal affairs',
+			'Klientų aptarnavimas ir paslaugos': 'Customer service and services',
+			'Transportas': 'Transport',
+			'Kultūra ir pramogos': 'Culture and entertainment',
+			'Švietimas / studijos': 'Education / studies',
+			'Vyras': 'Male',
+			'Moteris': 'Female'
+		};
+
+		function setLanguage(lang) {
+			currentLang = lang;
+			localStorage.setItem('lang', lang);
+			// update active flag
+			document.querySelectorAll('.lang-flag').forEach(img => img.classList.remove('active'));
+			const active = document.getElementById(lang === 'en' ? 'lang-en' : 'lang-lt');
+			if (active) active.classList.add('active');
+			// update aria-pressed state for screen readers / keyboard users
+			document.querySelectorAll('.lang-flag').forEach(img => img.setAttribute('aria-pressed', 'false'));
+			if (active) active.setAttribute('aria-pressed', 'true');
+
+			// translate textual elements
+			const nodes = document.querySelectorAll('h1, legend, label, button, strong');
+			nodes.forEach(el => {
+				const text = el.textContent.trim();
+				if (lang === 'en') {
+					if (ltToEn[text]) {
+						// store original lt text if not stored
+						if (!el.dataset.lt) el.dataset.lt = text;
+						// replace only the text node to preserve child inputs
+						const tn = Array.from(el.childNodes).find(n => n.nodeType === 3 && n.nodeValue.trim().length>0);
+						if (tn) tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), ltToEn[text]); else el.textContent = ltToEn[text];
+					}
+				} else {
+					// revert to stored lt
+					if (el.dataset.lt) {
+						const orig = el.dataset.lt;
+						const tn = Array.from(el.childNodes).find(n => n.nodeType === 3 && n.nodeValue.trim().length>0);
+						if (tn) tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), orig); else el.textContent = orig;
+					}
+				}
+			});
+
+			// placeholders/titles
+			const gim = document.getElementById('gimimo_data');
+			if (gim) {
+				if (lang === 'en') {
+					gim.title = 'Enter date as yyyy/mm/dd';
+				} else {
+					gim.title = 'Įveskite datą formatu yyyy/mm/dd';
+				}
+			}
+
+			// atostogu_pabaiga title/placeholder
+			const atost = document.getElementById('atostogu_pabaiga');
+			if (atost) {
+				if (lang === 'en') {
+					atost.title = 'Enter date as yyyy/mm/dd';
+					// store lt placeholder if not stored
+					if (!atost.dataset.ltPlaceholder) atost.dataset.ltPlaceholder = atost.placeholder || '';
+					atost.placeholder = 'yyyy/mm/dd';
+				} else {
+					atost.title = 'Įveskite datą formatu yyyy/mm/dd';
+					atost.placeholder = atost.dataset.ltPlaceholder || 'yyyy/mm/dd';
+				}
+			}
+
+			// translate placeholder for mokslo laipsnis
+			const mokslo = document.getElementById('mokslo_laipsnis');
+			if (mokslo) {
+				if (lang === 'en') {
+					// store lt placeholder if not stored
+					if (!mokslo.dataset.ltPlaceholder) mokslo.dataset.ltPlaceholder = mokslo.placeholder || '';
+					mokslo.placeholder = messages.en.moksloPlaceholder;
+				} else {
+					mokslo.placeholder = mokslo.dataset.ltPlaceholder || messages.lt.moksloPlaceholder;
+				}
+			}
+
+			// update validation language in case some custom messages are currently set
+			// clear customValidity for required fields so invalid events will set messages in the current language
+			const requiredControls = Array.from(document.querySelectorAll('#personal-data-form [required]'));
+			requiredControls.forEach(el => el.setCustomValidity(''));
+		}
+
+		// wire flag buttons
+		const btnLt = document.getElementById('lang-lt');
+		const btnEn = document.getElementById('lang-en');
+		function makeFlagInteractive(el, lang) {
+			if (!el) return;
+			el.addEventListener('click', () => setLanguage(lang));
+			el.addEventListener('keydown', (ev) => {
+				// support Enter and Space
+				if (ev.key === 'Enter' || ev.key === ' ') {
+					ev.preventDefault();
+					setLanguage(lang);
+				}
+			});
+		}
+		makeFlagInteractive(btnLt, 'lt');
+		makeFlagInteractive(btnEn, 'en');
+		// initialize UI language
+		setLanguage(currentLang);
 });
