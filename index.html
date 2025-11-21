@@ -167,6 +167,13 @@
       <button type="submit">Siųsti</button>
       <button type="reset">Išvalyti</button>
     </form>
+    <!-- Progress bar (updates as required fields are filled) -->
+    <div id="progress-wrap" aria-hidden="false">
+      <div id="progress-track">
+        <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%"></div>
+      </div>
+      <div id="progress-label" aria-live="polite">0%</div>
+    </div>
 
     <script src="main.js" defer></script>
   </body>

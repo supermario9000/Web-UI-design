@@ -85,3 +85,30 @@ button[type='reset'] { background:#f3f4f6; color:#111; border-color:#dbe3ee; mar
     button[type='reset'] { width:100%; display:block; transform: translateX(-2%); }
 }
 
+/* Progress bar at bottom */
+#progress-wrap {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 12px;
+	background: rgba(0,0,0,0.02);
+	gap: 12px;
+	z-index: 1200;
+}
+#progress-track { width: 60%; height: 8px; background: #e6edf7; border-radius: 999px; overflow:hidden; }
+#progress-bar { height:100%; background: linear-gradient(90deg,#0078d4,#1a73e8); width:0%; transition: width 220ms ease; }
+#progress-label { font-size:0.9rem; color:#123; min-width:48px; text-align:center; }
+
+@media (max-width: 900px) {
+	#progress-track { width:70%; }
+}
+
+@media (max-width: 600px) {
+	#progress-track { width:84%; }
+	#progress-label { font-size:0.85rem; }
+}
+

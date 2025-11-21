@@ -1,5 +1,75 @@
 // Moved form interaction logic from inline script in index.html
 document.addEventListener('DOMContentLoaded', () => {
+
+    // --- Language switching (LT / EN) ---
+	const ltToEn = {
+		'Anketos forma': 'Personal Data Form',
+		'Lytis': 'Gender',
+		'Vardas / pavardė': 'Name / Surname',
+		'Gimimo duomenys': 'Birth information',
+		'Išsilavinimas': 'Education',
+		'Kontaktai': 'Contact',
+		'Vedybinė padėtis': 'Marital status',
+		'Profesinė padėtis': 'Professional status',
+		'Darbo patirtis': 'Work experience',
+		'Darbo sritis': 'Field of work',
+		'Vardas': 'First name',
+		'Antrasis vardas': 'Middle name',
+		'Pavardė': 'Surname',
+		'Gimimo data (formatas: yyyy/mm/dd)': 'Birth date (format: yyyy/mm/dd)',
+		'Asmens kodas': 'Personal code',
+		'Paskutinė baigta mokslo / studijų įstaiga': 'Last completed institution',
+		'Baigimo metai': 'Graduation year',
+		'Kvalifikacija (specialybės pavadinimas)': 'Qualification (specialty name)',
+		'Mokslo laipsnis': 'Academic degree',
+		'Telefono numeris': 'Phone number',
+		'El. pašto adresas': 'Email address',
+		'Gyvenamoji vieta (adresas)': 'Address',
+		'Sutuoktinis(-ė) vardas': 'Spouse first name',
+		'Sutuoktinis(-ė) pavardė': 'Spouse surname',
+		'Studijų pakopa': 'Study level',
+		'Kursas': 'Course',
+		'Įstaiga': 'Institution',
+		'Tikėtini baigimo metai': 'Expected graduation year',
+		'Darbo įstaiga': 'Employer',
+		'Pareigos': 'Position',
+		'Nedarbo priežastis': 'Reason for unemployment',
+		'Atostogų pabaiga': 'End of leave',
+		'Darbo patirtis (metai)': 'Work experience (years)',
+		'Turiu darbo patirties': 'I have work experience',
+		'Neturiu darbo patirties': "I don't have work experience",
+		'Siųsti': 'Submit',
+		'Išvalyti': 'Reset',
+		'Pagrindinis': 'Primary',
+		'Vidurinis': 'Secondary',
+		'Profesinis': 'Vocational',
+		'Aukštasis - kolegijinis': 'Higher - college',
+		'Aukštasis - universitetinis': 'Higher - university',
+		'Nevedęs / Netekėjusi': 'Single',
+		'Vedęs / Ištekėjusi': 'Married',
+		'Išsiskyręs(-usi)': 'Divorced',
+		'Studijuoja': 'Studying',
+		'Studijuoja — duomenys': 'Studying — details',
+		'Dirba': 'Working',
+		'Nedirba': 'Not working',
+		'Motinystės / tėvystės atostogose': 'On maternity/paternity leave',
+		'Teisė': 'Law',
+		'Viešasis sektorius': 'Public sector',
+		'Sveikatos apsauga': 'Healthcare',
+		'Farmacija': 'Pharmacy',
+		'Pramonė / gamyba': 'Industry / Manufacturing',
+		'IT': 'IT',
+		'Prekyba': 'Trade',
+		'Krašto apsauga': 'Defense',
+		'Vidaus reikalų sistema': 'Internal affairs',
+		'Klientų aptarnavimas ir paslaugos': 'Customer service and services',
+		'Transportas': 'Transport',
+		'Kultūra ir pramogos': 'Culture and entertainment',
+		'Švietimas / studijos': 'Education / studies',
+		'Vyras': 'Male',
+		'Moteris': 'Female'
+	};
+
 	// translation and validation messages
 	const messages = {
 		lt: {
@@ -271,6 +341,91 @@ document.addEventListener('DOMContentLoaded', () => {
 				}
 			});
 
+		// progress bar update helper (counts visible required controls and how many are satisfied)
+		function isVisible(node) {
+			// If the node is a radio/checkbox input that is visually hidden (opacity:0)
+			// treat the element as visible if its associated label is visible.
+			if (node && node.tagName === 'INPUT' && (node.type === 'radio' || node.type === 'checkbox')) {
+				let lbl = node.closest('label');
+				if (!lbl && node.id) lbl = document.querySelector(`label[for="${node.id}"]`);
+				if (lbl) node = lbl; // continue visibility checks from the label
+			}
+			let n = node;
+			while (n && n !== document) {
+				if (n.hidden) return false;
+				const s = window.getComputedStyle(n);
+				if (s.display === 'none' || s.visibility === 'hidden') return false;
+				// allow inputs that are visually hidden via opacity (we render custom dots) as visible
+				if (n.tagName === 'INPUT' && parseFloat(s.opacity) === 0) {
+					// if there's a wrapping label and it's visible, consider visible (handled above)
+					// otherwise treat as visible to avoid false negatives
+					// continue up the tree
+				}
+				n = n.parentElement;
+			}
+			return true;
+		}
+
+		function updateProgress() {
+			const progressBar = document.getElementById('progress-bar');
+			const progressLabel = document.getElementById('progress-label');
+			if (!progressBar || !progressLabel) return;
+
+			// count required single inputs (non-radio/checkbox)
+			const requiredSingles = Array.from(form.querySelectorAll('[required]')).filter(el => el.type !== 'radio' && el.type !== 'checkbox');
+
+			// collect all radio/checkbox groups (include optional groups too)
+			const allRadios = Array.from(form.querySelectorAll('input[type="radio"], input[type="checkbox"]'));
+			const groupNames = Array.from(new Set(allRadios.map(i => i.name).filter(Boolean)));
+
+			let total = 0, done = 0;
+
+			// radio/checkbox groups: count each visible group once (user selecting any option counts it as done)
+			groupNames.forEach(name => {
+				const inputs = Array.from(form.querySelectorAll(`input[name="${name}"]`));
+				const anyVisible = inputs.some(i => isVisible(i));
+				if (!anyVisible) return;
+				total += 1;
+				const anyChecked = inputs.some(i => i.checked);
+				if (anyChecked) done += 1;
+			});
+
+			// required single inputs
+			requiredSingles.forEach(el => {
+				if (!isVisible(el)) return;
+				total += 1;
+				if (el.checkValidity()) done += 1;
+			});
+
+			const pct = total === 0 ? 100 : Math.round((done / total) * 100);
+			progressBar.style.width = pct + '%';
+			progressBar.setAttribute('aria-valuenow', String(pct));
+			progressLabel.textContent = pct + '%';
+		}
+
+		// wire progress updates to required control events
+		requiredControls.forEach(el => {
+			const ev = (el.type === 'radio' || el.type === 'checkbox') ? 'change' : 'input';
+			el.addEventListener(ev, updateProgress);
+		});
+
+		// also wire all radio/checkbox inputs (including optional groups) so selecting a bubble updates progress
+		const allChoiceInputs = Array.from(form.querySelectorAll('input[type="radio"], input[type="checkbox"]'));
+		allChoiceInputs.forEach(i => i.addEventListener('change', updateProgress));
+
+		// also update on visibility-changing controls
+		// profession and work-experience radios change visible required fields
+		const profs = document.querySelectorAll('input[name="prof_padetis"]');
+		profs.forEach(r => r.addEventListener('change', updateProgress));
+		const darboPat = document.querySelectorAll('input[name="turi_darbo_patirtis"]');
+		darboPat.forEach(r => r.addEventListener('change', updateProgress));
+		const vedy = document.querySelectorAll('input[name="vedybine"]');
+		vedy.forEach(r => r.addEventListener('change', updateProgress));
+
+		// update when form is reset or on init
+		form.addEventListener('reset', () => setTimeout(updateProgress, 10));
+		// initial progress
+		setTimeout(updateProgress, 50);
 			// provide Lithuanian custom messages on invalid for empty required fields
 			el.addEventListener('invalid', (ev) => {
 				// keep specialized handlers (e.g. birthdate, leave date) intact
@@ -344,76 +499,100 @@ document.addEventListener('DOMContentLoaded', () => {
 			// otherwise allow submit to proceed
 			return true;
 		});
-	}
 
-		// --- Language switching (LT / EN) ---
-		const ltToEn = {
-			'Anketos forma': 'Personal Data Form',
-			'Lytis': 'Gender',
-			'Vardas / pavardė': 'Name / Surname',
-			'Gimimo duomenys': 'Birth information',
-			'Išsilavinimas': 'Education',
-			'Kontaktai': 'Contact',
-			'Vedybinė padėtis': 'Marital status',
-			'Profesinė padėtis': 'Professional status',
-			'Darbo patirtis': 'Work experience',
-			'Darbo sritis': 'Field of work',
-			'Vardas': 'First name',
-			'Antrasis vardas': 'Middle name',
-			'Pavardė': 'Surname',
-			'Gimimo data (formatas: yyyy/mm/dd)': 'Birth date (format: yyyy/mm/dd)',
-			'Asmens kodas': 'Personal code',
-			'Paskutinė baigta mokslo / studijų įstaiga': 'Last completed institution',
-			'Baigimo metai': 'Graduation year',
-			'Kvalifikacija (specialybės pavadinimas)': 'Qualification (specialty name)',
-			'Mokslo laipsnis': 'Academic degree',
-			'Telefono numeris': 'Phone number',
-			'El. pašto adresas': 'Email address',
-			'Gyvenamoji vieta (adresas)': 'Address',
-			'Sutuoktinis(-ė) vardas': 'Spouse first name',
-			'Sutuoktinis(-ė) pavardė': 'Spouse surname',
-			'Studijų pakopa': 'Study level',
-			'Kursas': 'Course',
-			'Įstaiga': 'Institution',
-			'Tikėtini baigimo metai': 'Expected graduation year',
-			'Darbo įstaiga': 'Employer',
-			'Pareigos': 'Position',
-			'Nedarbo priežastis': 'Reason for unemployment',
-			'Atostogų pabaiga': 'End of leave',
-			'Darbo patirtis (metai)': 'Work experience (years)',
-			'Turiu darbo patirties': 'I have work experience',
-			'Neturiu darbo patirties': "I don't have work experience",
-			'Siųsti': 'Submit',
-			'Išvalyti': 'Reset',
-			'Pagrindinis': 'Primary',
-			'Vidurinis': 'Secondary',
-			'Profesinis': 'Vocational',
-			'Aukštasis - kolegijinis': 'Higher - college',
-			'Aukštasis - universitetinis': 'Higher - university',
-			'Nevedęs / Netekėjusi': 'Single',
-			'Vedęs / Ištekėjusi': 'Married',
-			'Išsiskyręs(-usi)': 'Divorced',
-			'Studijuoja': 'Studying',
-			'Studijuoja — duomenys': 'Studying — details',
-			'Dirba': 'Working',
-			'Nedirba': 'Not working',
-			'Motinystės / tėvystės atostogose': 'On maternity/paternity leave',
-			'Teisė': 'Law',
-			'Viešasis sektorius': 'Public sector',
-			'Sveikatos apsauga': 'Healthcare',
-			'Farmacija': 'Pharmacy',
-			'Pramonė / gamyba': 'Industry / Manufacturing',
-			'IT': 'IT',
-			'Prekyba': 'Trade',
-			'Krašto apsauga': 'Defense',
-			'Vidaus reikalų sistema': 'Internal affairs',
-			'Klientų aptarnavimas ir paslaugos': 'Customer service and services',
-			'Transportas': 'Transport',
-			'Kultūra ir pramogos': 'Culture and entertainment',
-			'Švietimas / studijos': 'Education / studies',
-			'Vyras': 'Male',
-			'Moteris': 'Female'
-		};
+		// --- Robust delegated progress updater ---
+		// Some environments or dynamic DOM changes can prevent per-control listeners from firing.
+		// Add a delegated listener on the form which recomputes progress on any change/input event.
+		function computeAndSetProgress(ev) {
+			const progressBar = document.getElementById('progress-bar');
+			const progressLabel = document.getElementById('progress-label');
+			if (!progressBar || !progressLabel || !form) return;
+
+			// Debug: log trigger info
+			try {
+				const trig = ev && ev.target ? (ev.target.name || ev.target.id || ev.target.className || ev.target.tagName) : 'init/reset';
+				console.log('[progress] triggered by:', ev ? ev.type : 'programmatic', trig);
+			} catch (err) {
+				/* ignore logging errors */
+			}
+
+			function isVisible(node) {
+				// If the node is a radio/checkbox input that's visually hidden, prefer its label for visibility checks
+				if (node && node.tagName === 'INPUT' && (node.type === 'radio' || node.type === 'checkbox')) {
+					let lbl = node.closest('label');
+					if (!lbl && node.id) lbl = document.querySelector(`label[for="${node.id}"]`);
+					if (lbl) node = lbl;
+				}
+				let n = node;
+				while (n && n !== document) {
+					if (n.hidden) return false;
+					const s = window.getComputedStyle(n);
+					if (s.display === 'none' || s.visibility === 'hidden') return false;
+					// don't treat opacity:0 as hidden for inputs used as visual offscreen controls
+					n = n.parentElement;
+				}
+				return true;
+			}
+
+			const requiredSingles = Array.from(form.querySelectorAll('[required]')).filter(el => el.type !== 'radio' && el.type !== 'checkbox');
+			const allChoices = Array.from(form.querySelectorAll('input[type="radio"], input[type="checkbox"]'));
+			const groupNames = Array.from(new Set(allChoices.map(i => i.name).filter(Boolean)));
+
+			let total = 0, done = 0;
+
+			const groupsInfo = groupNames.map(name => {
+				const inputs = Array.from(form.querySelectorAll(`input[name="${name}"]`));
+				const anyVisible = inputs.some(i => isVisible(i));
+				const anyChecked = inputs.some(i => i.checked);
+				if (anyVisible) {
+					total += 1;
+					if (anyChecked) done += 1;
+				}
+				return { name, visible: anyVisible, checked: anyChecked, count: inputs.length };
+			});
+
+			const singlesInfo = requiredSingles.map(el => {
+				const visible = isVisible(el);
+				if (visible) total += 1;
+				const ok = visible && el.checkValidity();
+				if (ok) done += 1;
+				return { id: el.id || el.name || null, visible, ok };
+			});
+
+			// Debug: log computed groups and singles as JSON for easy inspection
+			try {
+				console.log('[progress] groups (json):', JSON.stringify(groupsInfo, null, 2));
+				console.log('[progress] required singles (json):', JSON.stringify(singlesInfo, null, 2));
+			} catch (err) {
+				console.log('[progress] groups:', groupsInfo);
+				console.log('[progress] required singles:', singlesInfo);
+			}
+
+			const pct = total === 0 ? 100 : Math.round((done / total) * 100);
+			// Debug: log totals
+			console.log('[progress] total:', total, 'done:', done, 'pct:', pct + '%');
+			progressBar.style.width = pct + '%';
+			progressBar.setAttribute('aria-valuenow', String(pct));
+			progressLabel.textContent = pct + '%';
+		}
+
+		// Delegated listeners: fire compute on any change/input inside the form
+		form.addEventListener('change', (ev) => {
+			// run only for inputs/selects/textarea changes to avoid noise
+			const t = ev.target;
+			if (!t) return;
+			if (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA') computeAndSetProgress(ev);
+		});
+		form.addEventListener('input', (ev) => {
+			const t = ev.target;
+			if (!t) return;
+			if (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA') computeAndSetProgress(ev);
+		});
+
+		// ensure progress is correct after reset/init
+		form.addEventListener('reset', () => setTimeout(computeAndSetProgress, 20));
+		setTimeout(computeAndSetProgress, 50);
+	}
 
 		function setLanguage(lang) {
 			currentLang = lang;
